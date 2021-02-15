@@ -73,10 +73,17 @@ func NewDCAPI(cfg config.Config) (*api.Api, error) {
 	if amqpError != nil {
 		return nil, amqpError
 	}
+
+	httpClient, err := SetupHTTPClient(cfg.ClientCertFile, cfg.ClientKeyFile, cfg.CACertFile)
+	if err != nil {
+		return nil, err
+	}
+
 	dcapi := &api.Api{
 		DB:          client,
 		AMQPClient:  amqpConnection,
 		AMQPChannel: amqpChannel,
+		HTTPClient:  httpClient,
 		Cfg:         cfg,
 	}
 	return dcapi, nil
@@ -115,6 +122,8 @@ func SetupAMQP(amqphost string, amqpport int, amqpuser string, amqppassword stri
 	return conn, ch, nil
 }
 
+// SetupHTTPClient sets up an HTTP client with PKI and TLS support
+// for submitting HTTPS requests (e.g., to external APIs).
 func SetupHTTPClient(certfile string, keyfile string, cacertfile string) (*http.Client, error) {
 	// Read CA into memory
 	cacert, err := ioutil.ReadFile(cacertfile)
