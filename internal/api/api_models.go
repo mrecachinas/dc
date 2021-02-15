@@ -6,6 +6,7 @@ import (
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"net/http"
 )
 
 // Api is a wrapper around various state including
@@ -15,6 +16,7 @@ type Api struct {
 	DB          *mongo.Client
 	AMQPClient  *amqp.Connection
 	AMQPChannel *amqp.Channel
+	HTTPClient  *http.Client
 	Cfg         config.Config
 }
 
@@ -31,7 +33,7 @@ type Status struct {
 type Task struct {
 	Id        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	StartTime util.JSONTime      `json:"start_time" bson:"start_time"`
-	StopTime  util.JSONTime      `json:"stop_time,omitempty" bson:"stop_time"`
+	StopTime  util.JSONTime      `json:"stop_time,omitempty" bson:"stop_time,omitempty"`
 }
 
 // Response is a fairly generic response struct to handle common responses,

@@ -33,7 +33,7 @@ func (a *Api) GetAllStatus(c echo.Context) error {
 // GetTasks hits the external API for the tasks list XML
 // and returns it serialized as JSON.
 func (a *Api) GetTasks(c echo.Context) error {
-	tasks, err := QueryExternal(a.Cfg.TaskURL)
+	tasks, err := QueryExternal(a.Cfg.TaskURL, a.HTTPClient)
 	if err != nil {
 		c.Logger().Error(err)
 	}

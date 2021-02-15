@@ -2,26 +2,25 @@ package api
 
 import (
 	"encoding/xml"
-	"io/ioutil"
 	"net/http"
 )
 
 // QueryExternal submits a GET request to the external
-// API to get all available task options.
-func QueryExternal(taskURL string) ([]Task, error) {
-	resp, err := http.Get(taskURL)
+// XML API to get all available task options.
+func QueryExternal(taskURL string, client *http.Client) ([]Task, error) {
+	// Submit the HTTP request
+	response, err := client.Get(taskURL)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
+	// Deserialize the XML response to a list of `Task`s
+	// Note: Using xml.NewDecoder(...).Decode(...) allows
+	// pulling from a stream rather than reading it all
+	// into memory at once (as in xml.Unmarshal(...))
 	var tasks []Task
-	err = xml.Unmarshal(body, &tasks)
+	err = xml.NewDecoder(response.Body).Decode(&tasks)
 	if err != nil {
 		return nil, err
 	}

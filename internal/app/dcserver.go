@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,6 +12,7 @@ import (
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"time"
@@ -110,6 +113,35 @@ func SetupAMQP(amqphost string, amqpport int, amqpuser string, amqppassword stri
 	}
 
 	return conn, ch, nil
+}
+
+func SetupHTTPClient(certfile string, keyfile string, cacertfile string) (*http.Client, error) {
+	// Read CA into memory
+	cacert, err := ioutil.ReadFile(cacertfile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load CA
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(cacert)
+
+	// Load client PKIs
+	cert, err := tls.LoadX509KeyPair(certfile, keyfile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Setup HTTP client
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}
+	return client, nil
 }
 
 // SetupEchoServer sets up the actual webserver and connects
