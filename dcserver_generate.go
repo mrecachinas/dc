@@ -5,13 +5,13 @@ package main
 import (
 	"log"
 
-	"wab"
-
 	"github.com/shurcooL/vfsgen"
+
+	"github.com/mrecachinas/dcserver/internal/ui"
 )
 
 func main() {
-	err := vfsgen.Generate(wab.WebUI, vfsgen.Options{
+	err := vfsgen.Generate(ui.WebUI, vfsgen.Options{
 		PackageName:  "dcui",
 		BuildTags:    "!dev",
 		VariableName: "WebUI",

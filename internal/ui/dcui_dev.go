@@ -1,6 +1,6 @@
 // +build dev
 
-package dcui
+package ui
 
 import "net/http"
 
