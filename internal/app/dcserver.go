@@ -174,6 +174,7 @@ func SetupEchoServer(cfg config.Config, dcapi *api.Api) *echo.Echo {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 	e.GET("/api/status", dcapi.GetAllStatus)
+	e.GET("/api/status/:id", dcapi.GetStatus)
 	e.GET("/api/tasks", dcapi.GetTasks)
 	e.POST("/api/tasks/create", dcapi.CreateTask)
 	e.POST("/api/tasks/:id/stop", dcapi.StopTask)

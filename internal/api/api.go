@@ -12,6 +12,26 @@ import (
 	"net/http"
 )
 
+// GetStatus returns a single status object
+// to the client given an id.
+func (a *Api) GetStatus(c echo.Context) error {
+	id := c.Param("id")
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
+	var status Status
+	err = collection.FindOne(context.TODO(), bson.M{"_id": oid}).Decode(&status)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, status)
+}
+
 // GetAllStatus queries the tasks collection
 // for every record and returns it as JSON.
 func (a *Api) GetAllStatus(c echo.Context) error {
@@ -52,8 +72,6 @@ func (a *Api) CreateTask(c echo.Context) error {
 		return err
 	}
 
-	// TODO: Ask Charlie if I can just write to DB and send ID/start request
-	//       with a field {"status": "submitted"} in the DB
 	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
 	insertResult, err := collection.InsertOne(context.TODO(), task)
 	if err != nil {
@@ -100,9 +118,14 @@ func (a *Api) CreateTask(c echo.Context) error {
 // has been requested to stop.
 func (a *Api) StopTask(c echo.Context) error {
 	id := c.Param("id")
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 
 	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
-	updateResult, err := collection.UpdateOne(context.TODO(), bson.M{"id": id}, bson.M{"stop_flag": true})
+	updateResult, err := collection.UpdateOne(context.TODO(), bson.M{"_id": oid}, bson.M{"stop_flag": true})
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
