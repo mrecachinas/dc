@@ -4,9 +4,11 @@ COPY . /app
 WORKDIR /app
 RUN make dc
 
-FROM busybox:1.33.0-glibc
+FROM busybox:1.33.0
 
 COPY --from=builder /app/bin/dc /dc
+
+EXPOSE 1337
 
 ENTRYPOINT ["./dc"]
 
