@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -62,21 +63,26 @@ func Run() {
 
 // NewDCAPI creates a new api.Api with MongoDB and AMQP connections
 // TODO: Maybe move this into api.go? That would require moving
-// some of the other setup functions too though...
+//       some of the other setup functions too though...
 func NewDCAPI(cfg config.Config) (*api.Api, error) {
-	client, mongoConnectionError := SetupMongoConnection(cfg.MongoHost, cfg.MongoPort)
-	if mongoConnectionError != nil {
-		return nil, mongoConnectionError
-	}
-
-	amqpConnection, amqpChannel, amqpError := SetupAMQP(cfg.AMQPHost, cfg.AMQPPort, cfg.AMQPUser, cfg.AMQPPassword)
-	if amqpError != nil {
-		return nil, amqpError
-	}
-
-	httpClient, err := SetupHTTPClient(cfg.ClientCertFile, cfg.ClientKeyFile, cfg.CACertFile)
+	client, err := SetupMongoConnection(cfg.MongoHost, cfg.MongoPort)
 	if err != nil {
 		return nil, err
+	}
+
+	amqpConnection, amqpChannel, err := SetupAMQP(cfg.AMQPHost, cfg.AMQPPort, cfg.AMQPUser, cfg.AMQPPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var httpClient *http.Client
+	if cfg.ClientCertFile != "" && cfg.ClientKeyFile != "" && cfg.CACertFile != "" {
+		httpClient, _ = SetupHTTPClient()
+	} else {
+		httpClient, err = SetupHTTPSClient(cfg.ClientCertFile, cfg.ClientKeyFile, cfg.CACertFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	dcapi := &api.Api{
@@ -84,6 +90,7 @@ func NewDCAPI(cfg config.Config) (*api.Api, error) {
 		AMQPClient:  amqpConnection,
 		AMQPChannel: amqpChannel,
 		HTTPClient:  httpClient,
+		Websocket:   SetupWebsocketConnectionPool(),
 		Cfg:         cfg,
 	}
 	return dcapi, nil
@@ -122,9 +129,13 @@ func SetupAMQP(amqphost string, amqpport int, amqpuser string, amqppassword stri
 	return conn, ch, nil
 }
 
-// SetupHTTPClient sets up an HTTP client with PKI and TLS support
+func SetupHTTPClient() (*http.Client, error) {
+	return &http.Client{}, nil
+}
+
+// SetupHTTPSClient sets up an HTTPS client with PKI and TLS support
 // for submitting HTTPS requests (e.g., to external APIs).
-func SetupHTTPClient(certfile string, keyfile string, cacertfile string) (*http.Client, error) {
+func SetupHTTPSClient(certfile string, keyfile string, cacertfile string) (*http.Client, error) {
 	// Read CA into memory
 	cacert, err := ioutil.ReadFile(cacertfile)
 	if err != nil {
@@ -153,6 +164,12 @@ func SetupHTTPClient(certfile string, keyfile string, cacertfile string) (*http.
 	return client, nil
 }
 
+// SetupWebsocketConnectionPool establishes a WebsocketConnectionPool object
+// and makes an empty *websocket.Conn map.
+func SetupWebsocketConnectionPool() *api.WebsocketConnectionPool {
+	return &api.WebsocketConnectionPool{Connections: make(map[*websocket.Conn]struct{})}
+}
+
 // SetupEchoServer sets up the actual webserver and connects
 // the routes to the route handler functions.
 func SetupEchoServer(cfg config.Config, dcapi *api.Api) *echo.Echo {
@@ -178,7 +195,7 @@ func SetupEchoServer(cfg config.Config, dcapi *api.Api) *echo.Echo {
 	e.GET("/api/tasks", dcapi.GetTasks)
 	e.POST("/api/tasks/create", dcapi.CreateTask)
 	e.POST("/api/tasks/:id/stop", dcapi.StopTask)
-	e.GET("/ws", dcapi.HelloWebsocket)
+	e.GET("/ws", dcapi.UpdaterWebsocket)
 	e.File("/", "public/index.html")
 	return e
 }

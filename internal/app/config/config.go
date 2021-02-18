@@ -22,6 +22,7 @@ type Config struct {
 	ClientCertFile     string `json:"client_certfile"`
 	ClientKeyFile      string `json:"client_keyfile"`
 	CACertFile         string `json:"cacert_file"`
+	PollingInterval    int    `json:"polling_interval"`
 }
 
 // NewConfigFromCLI parses the command-line and returns a Config.
@@ -40,6 +41,7 @@ func NewConfigFromCLI() Config {
 	pflag.StringVar(&cfg.ClientCertFile, "client-cert", "", "Client public key file")
 	pflag.StringVar(&cfg.ClientKeyFile, "client-key", "", "Client private key file")
 	pflag.StringVar(&cfg.CACertFile, "cacert", "", "CA Certificate file")
+	pflag.IntVar(&cfg.PollingInterval, "polling-interval", 5, "Number of seconds between database polls")
 	pflag.Parse()
 	return cfg
 }

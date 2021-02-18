@@ -1,12 +1,14 @@
 package api
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/mrecachinas/dcserver/internal/app/config"
 	"github.com/mrecachinas/dcserver/internal/util"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
+	"sync"
 )
 
 // Api is a wrapper around various state including
@@ -17,7 +19,16 @@ type Api struct {
 	AMQPClient  *amqp.Connection
 	AMQPChannel *amqp.Channel
 	HTTPClient  *http.Client
+	Websocket   *WebsocketConnectionPool
 	Cfg         config.Config
+}
+
+// WebsocketConnectionPool holds a map of every websocket
+// connection, so we can broadcast updates to everyone,
+// thus requiring only one pull from the database.
+type WebsocketConnectionPool struct {
+	sync.RWMutex
+	Connections map[*websocket.Conn]struct{}
 }
 
 // TODO: Status and Task can probably be combined into just Task or status
