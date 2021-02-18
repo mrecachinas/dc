@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson"
@@ -123,7 +122,3 @@ func (a *Api) StopTask(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, Response{Msg: "Successfully submitted stop task request"})
 }
-
-var (
-	upgrader = websocket.Upgrader{}
-)

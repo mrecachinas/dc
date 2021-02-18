@@ -8,6 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var (
+	upgrader = websocket.Upgrader{}
+)
+
 // UpdaterWebsocket handles broadcasting updates to the database;
 // Note: this just means querying the collection every
 // `api.Cfg.PollingInterval` seconds and returning the *entire*
