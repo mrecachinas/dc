@@ -6,6 +6,9 @@ RUN make dc
 
 FROM busybox:1.33.0
 
+RUN adduser -D -H -u 10001 dcuser
+USER dcuser
+
 COPY --from=builder /app/bin/dc /dc
 
 EXPOSE 1337
