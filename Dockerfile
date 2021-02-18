@@ -1,11 +1,12 @@
-FROM golang:1.15 as builder
+FROM golang:1.16 as builder
 
 COPY . /app
+WORKDIR /app
 RUN make dc
 
-FROM busybox
+FROM busybox:1.33.0-glibc
 
-COPY --from=builder /app/dc /dc
+COPY --from=builder /app/bin/dc /dc
 
 ENTRYPOINT ["./dc"]
 
