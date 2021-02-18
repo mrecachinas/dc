@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
-	"github.com/mrecachinas/dcserver/internal/app/config"
+	"github.com/mrecachinas/dcserver/internal/config"
 	"github.com/mrecachinas/dcserver/internal/util"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"

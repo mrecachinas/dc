@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/mrecachinas/dcserver/internal/app"
-	"github.com/mrecachinas/dcserver/internal/app/config"
+	"github.com/mrecachinas/dcserver/internal/config"
 	"github.com/spf13/pflag"
 )
 
