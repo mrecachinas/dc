@@ -1,15 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
-)
-
-var (
-	upgrader = websocket.Upgrader{}
+	"golang.org/x/net/websocket"
 )
 
 // UpdaterWebsocket handles broadcasting updates to the database;
@@ -17,68 +14,72 @@ var (
 // `api.Cfg.PollingInterval` seconds and returning the *entire*
 // contents of the collection.
 func (a *Api) UpdaterWebsocket(c echo.Context) error {
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		c.Logger().Error(err)
-		return err
-	}
-	defer ws.Close()
+	websocket.Handler(func(ws *websocket.Conn) {
+		defer ws.Close()
 
-	// Create a new connection entry in our connection map
-	a.Websocket.Lock()
-	a.Websocket.Connections[ws] = struct{}{}
-	defer a.Websocket.CloseWebsocketConnection(ws)
-	a.Websocket.Unlock()
+		// Create a new connection entry in our connection map
+		a.Websocket.Lock()
+		a.Websocket.Connections[ws] = struct{}{}
+		defer a.Websocket.CloseWebsocketConnection(ws)
+		a.Websocket.Unlock()
 
-	msg := fmt.Sprintf(
-		"Client %s joined. %d total connections.",
-		c.Request().Host,
-		len(a.Websocket.Connections),
-	)
-	c.Logger().Info(msg)
+		msg := fmt.Sprintf(
+			"Client %s joined. %d total connections.",
+			c.Request().Host,
+			len(a.Websocket.Connections),
+		)
+		c.Logger().Info(msg)
 
-	delay := time.Duration(a.Cfg.PollingInterval) * time.Second
+		delay := time.Duration(a.Cfg.PollingInterval) * time.Second
 
-	// TODO: Make error handling/logging more useful? Break if error occurs?
-	// TODO: Figure out a way to break gracefully on ctrl-c?
-	for {
-		select {
-		case <-time.After(delay):
-			// Get ALL records every N seconds
-			statusList, err := GetAllStatus(a.DB.Database(a.Cfg.MongoDatabaseName))
-			if err != nil {
-				c.Logger().Error("Error getting all status from database")
-			}
+		// TODO: Make error handling/logging more useful? Break if error occurs?
+		// TODO: Figure out a way to break gracefully on ctrl-c?
+		for {
+			select {
+			case <-time.After(delay):
+				// Get ALL records every N seconds
+				statusList, err := GetAllStatus(a.DB.Database(a.Cfg.MongoDatabaseName))
+				if err != nil {
+					c.Logger().Error("Error getting all status from database")
+				}
 
-			// Broadcast result to all connections
-			err = a.Websocket.SendMessageToPool(statusList)
-			if err != nil {
-				c.Logger().Error("Error sending message to pool")
-			}
+				// Broadcast result to all connections
+				err = a.Websocket.SendMessageToPool(statusList)
+				if err != nil {
+					c.Logger().Error("Error sending message to pool")
+				}
 
-			// Read inbound websocket messages;
-			// if we get an error back, that means the client
-			// closed the connection
-			_, _, err = ws.ReadMessage()
-			if err != nil {
-				msg := fmt.Sprintf(
-					"Client %s quitting. %d connections remain.",
-					c.Request().Host,
-					len(a.Websocket.Connections),
-				)
-				c.Logger().Info(msg)
-				break
+				// Read inbound websocket messages;
+				// if we get an error back, that means the client
+				// closed the connection
+				msg := ""
+				err = websocket.Message.Receive(ws, &msg)
+				if err != nil {
+					msg := fmt.Sprintf(
+						"Client %s quitting. %d connections remain.",
+						c.Request().Host,
+						len(a.Websocket.Connections),
+					)
+					c.Logger().Info(msg)
+					break
+				}
 			}
 		}
-	}
+	}).ServeHTTP(c.Response(), c.Request())
+	return nil
 }
 
 // SendMessageToPool sends a message to every connection
 func (pool *WebsocketConnectionPool) SendMessageToPool(message interface{}) error {
+	jsonMsg, err := json.Marshal(&message)
+	if err != nil {
+		return err
+	}
+
 	pool.RLock()
 	defer pool.RUnlock()
 	for connection := range pool.Connections {
-		if err := connection.WriteJSON(&message); err != nil {
+		if err := websocket.Message.Send(connection, jsonMsg); err != nil {
 			return err
 		}
 	}

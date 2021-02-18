@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	"github.com/mrecachinas/dcserver/internal/config"
 	"github.com/mrecachinas/dcserver/internal/util"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/net/websocket"
 )
 
 // Api is a wrapper around various state including

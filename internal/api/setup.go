@@ -13,8 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/gorilla/websocket"
 	"github.com/mrecachinas/dcserver/internal/config"
+	"golang.org/x/net/websocket"
 )
 
 // NewDCAPI creates a new api.Api with MongoDB and AMQP connections
