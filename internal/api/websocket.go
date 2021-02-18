@@ -73,6 +73,7 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 	}
 }
 
+// SendMessageToPool sends a message to every connection
 func (pool *WebsocketConnectionPool) SendMessageToPool(message interface{}) error {
 	pool.RLock()
 	defer pool.RUnlock()
@@ -84,6 +85,8 @@ func (pool *WebsocketConnectionPool) SendMessageToPool(message interface{}) erro
 	return nil
 }
 
+// CloseWebsocketConnection closes a single websocket connection and
+// deletes it from our map
 func (pool *WebsocketConnectionPool) CloseWebsocketConnection(connection *websocket.Conn) {
 	pool.Lock()
 	connection.Close()
