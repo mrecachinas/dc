@@ -9,7 +9,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/streadway/amqp"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -17,18 +16,7 @@ import (
 // to the client given an id.
 func (a *Api) GetStatus(c echo.Context) error {
 	id := c.Param("id")
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.Logger().Error(err)
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
-	var status Status
-	err = collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&status)
+	status, err := GetSingleStatus(a.DB.Database(a.Cfg.MongoDatabaseName), id)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
