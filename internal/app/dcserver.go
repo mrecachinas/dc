@@ -5,6 +5,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/signal"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -13,10 +18,6 @@ import (
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"io/ioutil"
-	"os"
-	"os/signal"
-	"time"
 
 	"net/http"
 
@@ -27,9 +28,7 @@ import (
 // It handles parsing the command-line, setting up
 // connections to MongoDB and RabbitMQ, and
 // instantiates and runs the echo server.
-func Run() {
-	cfg := config.NewConfigFromCLI()
-
+func Run(cfg *config.Config) {
 	dcapi, err := NewDCAPI(cfg)
 	if err != nil {
 		log.Fatal(err)
