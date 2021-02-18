@@ -18,8 +18,6 @@ import (
 )
 
 // NewDCAPI creates a new api.Api with MongoDB and AMQP connections
-// TODO: Maybe move this into api.go? That would require moving
-//       some of the other setup functions too though...
 func NewDCAPI(cfg *config.Config) (*Api, error) {
 	client, err := SetupMongoConnection(cfg.MongoHost, cfg.MongoPort)
 	if err != nil {
