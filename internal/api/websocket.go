@@ -33,7 +33,6 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 		delay := time.Duration(a.Cfg.PollingInterval) * time.Second
 
 		// TODO: Make error handling/logging more useful? Break if error occurs?
-		// TODO: Figure out a way to break gracefully on ctrl-c?
 		for {
 			select {
 			case <-time.After(delay):

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/streadway/amqp"
@@ -22,9 +23,12 @@ func (a *Api) GetStatus(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
 	var status Status
-	err = collection.FindOne(context.TODO(), bson.M{"_id": oid}).Decode(&status)
+	err = collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&status)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -66,8 +70,11 @@ func (a *Api) CreateTask(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
-	insertResult, err := collection.InsertOne(context.TODO(), task)
+	insertResult, err := collection.InsertOne(ctx, task)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
