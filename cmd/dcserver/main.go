@@ -2,11 +2,12 @@ package main
 
 import (
 	"github.com/mrecachinas/dcserver/internal/app"
+	"github.com/mrecachinas/dcserver/internal/app/config"
 	"github.com/spf13/pflag"
 )
 
 func main() {
-	cfg := &Config{}
+	cfg := &config.Config{}
 	pflag.StringVarP(&cfg.Host, "host", "i", "localhost", "The URL to listen on")
 	pflag.IntVarP(&cfg.Port, "port", "p", 1337, "The port to run on")
 	pflag.BoolVarP(&cfg.Debug, "debug", "d", false, "Whether or not to enable debug logging")

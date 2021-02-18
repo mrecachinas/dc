@@ -38,7 +38,7 @@ func Run(cfg *config.Config) {
 	defer dcapi.AMQPClient.Close()
 	defer dcapi.AMQPChannel.Close()
 
-	e := SetupEchoServer(cfg, dcapi)
+	e := SetupEchoServer(dcapi)
 
 	// Run server
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
@@ -63,7 +63,7 @@ func Run(cfg *config.Config) {
 // NewDCAPI creates a new api.Api with MongoDB and AMQP connections
 // TODO: Maybe move this into api.go? That would require moving
 //       some of the other setup functions too though...
-func NewDCAPI(cfg config.Config) (*api.Api, error) {
+func NewDCAPI(cfg *config.Config) (*api.Api, error) {
 	client, err := SetupMongoConnection(cfg.MongoHost, cfg.MongoPort)
 	if err != nil {
 		return nil, err
@@ -171,14 +171,14 @@ func SetupWebsocketConnectionPool() *api.WebsocketConnectionPool {
 
 // SetupEchoServer sets up the actual webserver and connects
 // the routes to the route handler functions.
-func SetupEchoServer(cfg config.Config, dcapi *api.Api) *echo.Echo {
+func SetupEchoServer(dcapi *api.Api) *echo.Echo {
 	// Setup server
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	// If we're in debug mode, allow CORS
-	if cfg.Debug {
+	if dcapi.Cfg.Debug {
 		e.Use(middleware.CORS())
 		e.Logger.SetLevel(log.DEBUG)
 	} else {
