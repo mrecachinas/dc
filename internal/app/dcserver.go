@@ -26,10 +26,13 @@ func Run(cfg *config.Config) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	defer dcapi.DB.Disconnect(ctx)
-	defer dcapi.AMQPClient.Close()
-	defer dcapi.AMQPChannel.Close()
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer dcapi.DB.Disconnect(ctx)
+		defer dcapi.AMQPClient.Close()
+		defer dcapi.AMQPChannel.Close()
+		cancel()
+	}()
 
 	e := SetupEchoServer(dcapi)
 
@@ -37,7 +40,7 @@ func Run(cfg *config.Config) {
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	go func() {
 		if err := e.Start(address); err != nil {
-			e.Logger.Info("shutting down the server")
+			e.Logger.Info("Shutting down the server")
 		}
 	}()
 

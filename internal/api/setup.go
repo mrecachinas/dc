@@ -85,6 +85,7 @@ func SetupAMQP(amqphost string, amqpport int, amqpuser string, amqppassword stri
 	return conn, ch, nil
 }
 
+// SetupHTTPClient sets up a simple HTTP client
 func SetupHTTPClient() (*http.Client, error) {
 	return &http.Client{}, nil
 }
