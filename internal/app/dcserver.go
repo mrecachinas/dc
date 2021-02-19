@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -12,9 +13,8 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/mrecachinas/dcserver/internal/config"
 
-	"net/http"
-
 	"github.com/mrecachinas/dcserver/internal/api"
+	"github.com/mrecachinas/dcserver/ui"
 )
 
 // Run is the main entrypoint into the DCServer app.
@@ -72,16 +72,18 @@ func SetupEchoServer(dcapi *api.Api) *echo.Echo {
 		e.Logger.SetLevel(log.INFO)
 	}
 
+	webappFS := http.FileServer(ui.GetFileSystem())
+
 	// Setup routes
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
+	e.GET("/", echo.WrapHandler(webappFS))
+	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", webappFS)))
+
 	e.GET("/api/status", dcapi.GetAllStatus)
 	e.GET("/api/status/:id", dcapi.GetStatus)
 	e.GET("/api/tasks", dcapi.GetTasks)
 	e.POST("/api/tasks/create", dcapi.CreateTask)
 	e.POST("/api/tasks/:id/stop", dcapi.StopTask)
 	e.GET("/ws", dcapi.UpdaterWebsocket)
-	e.File("/", "public/index.html")
+
 	return e
 }
