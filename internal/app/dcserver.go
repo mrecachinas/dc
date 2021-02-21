@@ -28,7 +28,7 @@ func Run(cfg *config.Config) {
 	}
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer dcapi.DB.Disconnect(ctx)
+		defer dcapi.MongoClient.Disconnect(ctx)
 		defer dcapi.AMQPClient.Close()
 		defer dcapi.AMQPChannel.Close()
 		cancel()

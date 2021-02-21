@@ -16,7 +16,8 @@ import (
 // the MongoDB connection, the AMQP connection and channel,
 // and the passed CLI parameters.
 type Api struct {
-	DB          *mongo.Client
+	MongoClient *mongo.Client
+	DB          DB
 	AMQPClient  *amqp.Connection
 	AMQPChannel *amqp.Channel
 	HTTPClient  *http.Client

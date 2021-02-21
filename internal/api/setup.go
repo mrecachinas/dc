@@ -40,7 +40,8 @@ func NewDCAPI(cfg *config.Config) (*Api, error) {
 	}
 
 	dcapi := &Api{
-		DB:          client,
+		MongoClient: client,
+		DB:          DB{client.Database(cfg.MongoDatabaseName)},
 		AMQPClient:  amqpConnection,
 		AMQPChannel: amqpChannel,
 		HTTPClient:  httpClient,

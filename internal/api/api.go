@@ -1,22 +1,18 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/labstack/echo/v4"
 	"github.com/streadway/amqp"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"net/http"
 )
 
 // GetStatus returns a single status object
 // to the client given an id.
 func (a *Api) GetStatus(c echo.Context) error {
 	id := c.Param("id")
-	status, err := GetSingleStatus(a.DB.Database(a.Cfg.MongoDatabaseName), id)
+	status, err := a.DB.GetSingleStatus(id)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -27,7 +23,7 @@ func (a *Api) GetStatus(c echo.Context) error {
 // GetAllStatus queries the tasks collection
 // for every record and returns it as JSON.
 func (a *Api) GetAllStatus(c echo.Context) error {
-	statusList, err := GetAllStatus(a.DB.Database(a.Cfg.MongoDatabaseName))
+	statusList, err := a.DB.GetAllStatus()
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -58,50 +54,40 @@ func (a *Api) CreateTask(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	collection := a.DB.Database(a.Cfg.MongoDatabaseName).Collection("tasks")
-	insertResult, err := collection.InsertOne(ctx, task)
+	oid, err := a.DB.CreateTask(task)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	oid, ok := insertResult.InsertedID.(primitive.ObjectID)
-	if ok {
-		task.Id = oid
 
-		// Serialize the task object augmented with the new
-		// ObjectId and push it onto RabbitMQ
-		taskJson, err := json.Marshal(task)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
+	task.Id = *oid
 
-		err = a.AMQPChannel.Publish(
-			a.Cfg.AMQPOutputExchange,
-			"",
-			false,
-			false,
-			amqp.Publishing{
-				ContentType: "text/json",
-				Body:        taskJson,
-			},
-		)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
-		return c.JSON(http.StatusCreated, Response{
-			Msg: "Successfully submitted start task request",
-			Id:  oid.Hex(),
-		})
-	} else {
-		return c.JSON(http.StatusInternalServerError, Response{
-			Msg: "Error parsing inserted MongoDB ObjectId",
-		})
+	// Serialize the task object augmented with the new
+	// ObjectId and push it onto RabbitMQ
+	taskJson, err := json.Marshal(task)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
+
+	err = a.AMQPChannel.Publish(
+		a.Cfg.AMQPOutputExchange,
+		"",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/json",
+			Body:        taskJson,
+		},
+	)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusCreated, Response{
+		Msg: "Successfully submitted start task request",
+		Id:  oid.Hex(),
+	})
 }
 
 // StopTask sets the `stop_flag` field in the requested task
@@ -109,7 +95,7 @@ func (a *Api) CreateTask(c echo.Context) error {
 // has been requested to stop.
 func (a *Api) StopTask(c echo.Context) error {
 	id := c.Param("id")
-	err := StopTask(a.DB.Database(a.Cfg.MongoDatabaseName), id)
+	err := a.DB.StopTask(id)
 	if err != nil {
 		msg := fmt.Sprintf("An error occurred when trying to delete task %s", id)
 		c.Logger().Error(err)

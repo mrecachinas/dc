@@ -37,7 +37,7 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 			select {
 			case <-time.After(delay):
 				// Get ALL records every N seconds
-				statusList, err := GetAllStatus(a.DB.Database(a.Cfg.MongoDatabaseName))
+				statusList, err := a.DB.GetAllStatus()
 				if err != nil {
 					c.Logger().Error("Error getting all status from database")
 				}
