@@ -45,6 +45,7 @@ func (a *Api) GetTasks(c echo.Context) error {
 // CreateTask inserts the client-requested task
 // into the tasks collection and pushes a message
 // onto the RabbitMQ exchange for creation.
+// TODO: Do we need to check if a similar task currently exists?
 func (a *Api) CreateTask(c echo.Context) error {
 	// Deserialize the task JSON request into a `Task` object
 	var task Task

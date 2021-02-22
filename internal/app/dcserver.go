@@ -76,7 +76,7 @@ func SetupEchoServer(dcapi *api.Api) *echo.Echo {
 
 	// Setup routes
 	e.GET("/", echo.WrapHandler(webappFS))
-	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", webappFS)))
+	e.GET("/static/*", echo.WrapHandler(webappFS))
 
 	e.GET("/api/status", dcapi.GetAllStatus)
 	e.GET("/api/status/:id", dcapi.GetStatus)

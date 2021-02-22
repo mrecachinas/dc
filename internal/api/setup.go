@@ -30,7 +30,7 @@ func NewDCAPI(cfg *config.Config) (*Api, error) {
 	}
 
 	var httpClient *http.Client
-	if cfg.ClientCertFile != "" && cfg.ClientKeyFile != "" && cfg.CACertFile != "" {
+	if cfg.ClientCertFile == "" && cfg.ClientKeyFile == "" && cfg.CACertFile == "" {
 		httpClient, _ = SetupHTTPClient()
 	} else {
 		httpClient, err = SetupHTTPSClient(cfg.ClientCertFile, cfg.ClientKeyFile, cfg.CACertFile)

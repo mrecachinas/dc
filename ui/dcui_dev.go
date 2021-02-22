@@ -12,7 +12,7 @@ var embededFiles embed.FS
 // GetFileSystem wraps the embeddedFiles embedded
 // filesystem in an http.FS to be used in Echo
 func GetFileSystem() http.FileSystem {
-	fsys, err := fs.Sub(embededFiles, "static")
+	fsys, err := fs.Sub(embededFiles, "webapp/build")
 	if err != nil {
 		panic(err)
 	}

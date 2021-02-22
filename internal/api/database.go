@@ -55,6 +55,8 @@ func (db *DB) GetAllStatus() (*[]Status, error) {
 	return &statusList, nil
 }
 
+// CreateTask creates an entry in MongoDB that the kicked off
+// process will modify.
 func (db *DB) CreateTask(task Task) (*primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
