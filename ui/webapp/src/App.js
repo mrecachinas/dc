@@ -40,35 +40,11 @@ export default function App() {
   // `useEffect` operates similar to `componentDidMount`
   // and `componentDidUpdate`
   useEffect(() => {
-    /* TODO: Run this once the server is written
-
-    fetch("/api/websocket_uri")
-      .then((response) => response.json())
-      .then((data) => setWebsocketURL(data.websocket_uri))
-      .catch((error) => console.error(error));
-    
-    */
-    console.log("Setting websocket URL");
-    setWebsocketURL("ws://localhost:8080");
-  }, []);
-
-  // After getting the `websocketURL`...
-  useEffect(() => {
-    console.log(`Websocket URL: ${websocketURL}`);
+    const websocketURL = `ws://${window.location.hostname}:${window.location.port}/ws`;
     try {
       webSocket.current = new WebSocket(websocketURL);
       webSocket.current.onmessage = (message) => {
-        /**
-         * Messages will look like:
-         * {
-         *   "action": "UPDATE"|"NEW",
-         *   "table": "active"|"historical"|"tasking",
-         *   "data": {
-         *
-         *   }
-         * }
-         */
-        console.log(message);
+        console.log(message.data);
         const jsonData = JSON.parse(message.data);
         setInfo(jsonData);
         const updateTimeString = `Last Updated: ${new Date().toLocaleString()}`;
