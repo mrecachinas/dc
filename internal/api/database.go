@@ -86,9 +86,24 @@ func (db *DB) StopTask(id string) error {
 	defer cancel()
 
 	collection := db.Collection("tasks")
-	updateResult, err := collection.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"stop_flag": true})
-	if err != nil || updateResult.ModifiedCount != 1 {
+	updateResult, err := collection.UpdateOne(
+		ctx,
+		bson.M{ // query/filter
+			"_id": oid,
+			"stop_flag": false,
+		},
+		bson.M{ // update
+			"$set": bson.M{"stop_flag": true},
+		},
+	)
+	if err != nil {
 		return err
+	}
+	if updateResult.MatchedCount == 0 {
+		return fmt.Errorf("no running tasks with id %s", id)
+	}
+	if updateResult.ModifiedCount != 1 {
+		return fmt.Errorf("task with id %s NOT modified", id)
 	}
 
 	return nil

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/mrecachinas/dcserver/internal/config"
-	"github.com/mrecachinas/dcserver/internal/util"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,15 +37,15 @@ type WebsocketConnectionPool struct {
 // such as start time, stop time, etc.
 type Status struct {
 	Id        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	StartTime util.JSONTime      `json:"start_time" bson:"start_time"`
-	StopTime  util.JSONTime      `json:"stop_time,omitempty" bson:"stop_time"`
+	StartTime primitive.DateTime `json:"start_time" bson:"start_time"`
+	StopTime  primitive.DateTime `json:"stop_time,omitempty" bson:"stop_time"`
 	StopFlag  bool               `json:"stop_flag" bson:"stop_flag"`
 }
 
 type Task struct {
 	Id        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	StartTime util.JSONTime      `json:"start_time" bson:"start_time"`
-	StopTime  util.JSONTime      `json:"stop_time,omitempty" bson:"stop_time,omitempty"`
+	StartTime primitive.DateTime `json:"start_time" bson:"start_time"`
+	StopTime  primitive.DateTime `json:"stop_time,omitempty" bson:"stop_time,omitempty"`
 }
 
 // Response is a fairly generic response struct to handle common responses,

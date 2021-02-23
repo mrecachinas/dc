@@ -18,6 +18,7 @@ func main() {
 	pflag.IntVar(&cfg.AMQPPort, "amqp-port", 5672, "The port RabbitMQ is running on")
 	pflag.StringVar(&cfg.AMQPUser, "amqp-user", "guest", "Username for RabbitMQ")
 	pflag.StringVar(&cfg.AMQPPassword, "amqp-password", "guest", "Password for RabbitMQ")
+	pflag.StringVar(&cfg.AMQPOutputExchange, "amqp-output-exchange", "dc", "Output exchange to send start requests")
 	pflag.StringVar(&cfg.ClientCertFile, "client-cert", "", "Client public key file")
 	pflag.StringVar(&cfg.ClientKeyFile, "client-key", "", "Client private key file")
 	pflag.StringVar(&cfg.CACertFile, "cacert", "", "CA Certificate file")

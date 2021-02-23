@@ -98,9 +98,8 @@ func (a *Api) StopTask(c echo.Context) error {
 	id := c.Param("id")
 	err := a.DB.StopTask(id)
 	if err != nil {
-		msg := fmt.Sprintf("An error occurred when trying to delete task %s", id)
 		c.Logger().Error(err)
-		return c.JSON(http.StatusInternalServerError, Response{Msg: msg})
+		return c.JSON(http.StatusInternalServerError, Response{Msg: err.Error()})
 	}
 	msg := fmt.Sprintf("Successfully submitted stop task request for %s", id)
 	return c.JSON(http.StatusOK, Response{Msg: msg})

@@ -45,6 +45,7 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 				// Broadcast result to all connections
 				err = a.Websocket.SendMessageToPool(statusList)
 				if err != nil {
+					c.Logger().Error(err)
 					c.Logger().Error("Error sending message to pool")
 				}
 
@@ -59,6 +60,7 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 						c.Request().Host,
 						len(a.Websocket.Connections),
 					)
+					c.Logger().Error(err)
 					c.Logger().Info(msg)
 					break
 				}
@@ -78,8 +80,9 @@ func (pool *WebsocketConnectionPool) SendMessageToPool(message interface{}) erro
 	pool.RLock()
 	defer pool.RUnlock()
 	for connection := range pool.Connections {
+		// TODO: What to do when this errors?
 		if err := websocket.Message.Send(connection, jsonMsg); err != nil {
-			return err
+			continue
 		}
 	}
 	return nil
