@@ -5,8 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -93,7 +93,7 @@ func SetupHTTPClient() (*http.Client, error) {
 // for submitting HTTPS requests (e.g., to external APIs).
 func SetupHTTPSClient(certfile string, keyfile string, cacertfile string) (*http.Client, error) {
 	// Read CA into memory
-	cacert, err := ioutil.ReadFile(cacertfile)
+	cacert, err := os.ReadFile(cacertfile)
 	if err != nil {
 		return nil, err
 	}
