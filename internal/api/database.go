@@ -89,7 +89,7 @@ func (db *DB) StopTask(id string) error {
 	updateResult, err := collection.UpdateOne(
 		ctx,
 		bson.M{ // query/filter
-			"_id": oid,
+			"_id":       oid,
 			"stop_flag": false,
 		},
 		bson.M{ // update

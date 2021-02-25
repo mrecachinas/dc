@@ -33,9 +33,8 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 		delay := time.Duration(a.Cfg.PollingInterval) * time.Second
 
 		// TODO: Make error handling/logging more useful? Break if error occurs?
-		for {
-			select {
-			case <-time.After(delay):
+		for range time.Tick(delay) {
+			go func() {
 				// Get ALL records every N seconds
 				statusList, err := a.DB.GetAllStatus()
 				if err != nil {
@@ -62,9 +61,9 @@ func (a *Api) UpdaterWebsocket(c echo.Context) error {
 					)
 					c.Logger().Error(err)
 					c.Logger().Info(msg)
-					break
+					return
 				}
-			}
+			}()
 		}
 	}).ServeHTTP(c.Response(), c.Request())
 	return nil

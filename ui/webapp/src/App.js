@@ -43,9 +43,10 @@ export default function App() {
     const websocketURL = `ws://${window.location.hostname}:${window.location.port}/ws`;
     try {
       webSocket.current = new WebSocket(websocketURL);
-      webSocket.current.onmessage = (message) => {
-        console.log(message.data);
-        const jsonData = JSON.parse(message.data);
+      webSocket.current.onmessage = async (message) => {
+        const data = await message.data.text()
+        console.log(data);
+        const jsonData = JSON.parse(data);
         setInfo(jsonData);
         const updateTimeString = `Last Updated: ${new Date().toLocaleString()}`;
         setMessage(updateTimeString);
