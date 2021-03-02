@@ -1,10 +1,10 @@
-FROM node:14.15 as jsbuilder
+FROM node:14.15.1 as jsbuilder
 
 COPY ui/webapp /app
 WORKDIR /app
 RUN npm i && npm run build
 
-FROM golang:1.16 as gobuilder
+FROM golang:1.16.0-buster as gobuilder
 
 # TODO: Is there a way we don't need to
 #       copy all of . and just the go stuff?
