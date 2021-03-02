@@ -80,7 +80,7 @@ func (pool *WebsocketConnectionPool) SendMessageToPool(message interface{}) erro
 	defer pool.RUnlock()
 	for connection := range pool.Connections {
 		// TODO: What to do when this errors?
-		if err := websocket.Message.Send(connection, jsonMsg); err != nil {
+		if err := websocket.Message.Send(connection, string(jsonMsg)); err != nil {
 			continue
 		}
 	}
